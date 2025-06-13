@@ -5,59 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Car Premium Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DejaVu+Sans&family=Noto+Sans&display=swap" rel="stylesheet">
     <style>
-        #output {
-            font-family: 'DejaVu Sans', 'Courier New', monospace, 'Noto Sans', Arial, sans-serif;
+        select, input[type="text"], input[type="checkbox"] {
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            padding: 0.25rem;
         }
-        .rupee-test {
+        textarea {
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.875rem;
+            width: 100%;
+            height: 24rem;
+        }
+        .error-popup {
             display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            z-index: 50;
         }
-        #odpa-checkbox-container { display: block; }
-        #odpa-dd-container { display: none; }
     </style>
 </head>
-<body class="bg-green-100 flex justify-center items-center min-h-screen">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
-        <h1 class="text-2xl font-bold text-left mb-4">Car Premium Calculator</h1>
-        <form id="calculator-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Policy Type -->
-            <div>
-                <label for="policy_type" class="block text-sm font-medium">Policy Type:</label>
-                <select id="policy_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" onchange="updateVehicleAgeOptions(); updateODPAOptions()">
+<body class="bg-gray-100 p-6">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4">Car Premium Calculator</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="flex items-center">
+                <label class="w-40 text-sm font-medium">Policy Type:</label>
+                <select id="policy_type" class="w-48">
                     <option value="Bundle policy (New Vehicle)">Bundle policy (New Vehicle)</option>
                     <option value="Package Policy" selected>Package Policy</option>
                     <option value="TP policy">TP policy</option>
                     <option value="SAOD Policy">SAOD Policy</option>
                 </select>
             </div>
-            <!-- Zone -->
-            <div>
-                <label for="zone" class="block text-sm font-medium">Zone:</label>
-                <select id="zone" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            <div class="flex items-center">
+                <label class="w-40 text-sm font-medium">Zone:</label>
+                <select id="zone" class="w-24">
                     <option value="A">A</option>
                     <option value="B" selected>B</option>
                 </select>
             </div>
-            <!-- IDV -->
-            <div>
-                <label for="idv" class="block text-sm font-medium">IDV (Rs.):</label>
-                <input type="number" id="idv" value="600000" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" step="any">
+            <div class="flex items-center">
+                <label class="w-40 text-sm font-medium">IDV (Insured Declared Value):</label>
+                <input type="text" id="idv" value="600000" class="w-32">
             </div>
-            <!-- Capacity -->
-            <div>
-                <label for="capacity" id="capacity_label" class="block text-sm font-medium">Engine Capacity (CC):</label>
-                <select id="capacity" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            <div class="flex items-center">
+                <label id="capacity_label" class="w-40 text-sm font-medium">Engine Capacity (CC):</label>
+                <select id="capacity" class="w-32">
                     <option value="upto 1000">upto 1000</option>
                     <option value="1000-1500" selected>1000-1500</option>
                     <option value="Above 1500">Above 1500</option>
                 </select>
             </div>
-            <!-- Vehicle Age -->
-            <div>
-                <label for="vehicle_age" class="block text-sm font-medium">Age of Vehicle (Years):</label>
-                <select id="vehicle_age" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            <div class="flex items-center">
+                <label class="w-40 text-sm font-medium">Age of Vehicle (Years):</label>
+                <select id="vehicle_age" class="w-32">
                     <option value="0-1">0-1</option>
                     <option value="1-2">1-2</option>
                     <option value="2-3" selected>2-3</option>
@@ -71,10 +81,9 @@
                     <option value="above 10">above 10</option>
                 </select>
             </div>
-            <!-- NCB -->
-            <div>
-                <label for="ncb" class="block text-sm font-medium">NCB (%):</label>
-                <select id="ncb" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            <div class="flex items-center">
+                <label class="w-40 text-sm font-medium">NCB (%):</label>
+                <select id="ncb" class="w-24">
                     <option value="0" selected>0</option>
                     <option value="20">20</option>
                     <option value="25">25</option>
@@ -83,491 +92,360 @@
                     <option value="50">50</option>
                 </select>
             </div>
-            <!-- OD Discount -->
-            <div>
-                <label for="discount" class="block text-sm font-medium">OD Discount (%):</label>
-                <input type="number" id="discount" value="0" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" min="0" max="100" step="any">
+            <div class="flex items-center">
+                <label class="w-40 text-sm font-medium">OD Discount (%):</label>
+                <input type="text" id="discount" value="0" class="w-24">
             </div>
-            <!-- Checkboxes -->
-            <div class="col-span-2 space-y-2">
-                <label class="flex items-center">
-                    <input type="checkbox" id="is_ev" class="mr-2" onchange="updateCapacityOptions()">
-                    Electric Vehicle
-                </label>
-                <label class="flex items-center">
-                    <input type="checkbox" id="nil_dep" class="mr-2">
-                    Nil Dep Plus
-                </label>
-                <label class="flex items-center">
-                    <input type="checkbox" id="engine_protect" class="mr-2">
-                    Engine Protect
-                </label>
-                <label class="flex items-center">
-                    <input type="checkbox" id="invoice_protect" class="mr-2">
-                    Invoice Protect
-                </label>
-                <label class="flex items-center">
-                    <input type="checkbox" id="consumable_protect" class="mr-2">
-                    Consumable Protect
-                </label>
-                <label class="flex items-center">
-                    <input type="checkbox" id="rsa" class="mr-2">
-                    RSA
-                </label>
-                <label class="flex items-center">
-                    <input type="checkbox" id="driver" class="mr-2">
-                    Driver
-                </label>
-                <!-- ODPA Checkbox -->
-                <div id="odpa-checkbox-container">
-                    <label class="flex items-center">
-                        <input type="checkbox" id="odpa-checkbox" class="mr-2">
-                        ODPA
-                    </label>
-                </div>
-                <!-- ODPA Dropdown -->
-                <div id="odpa-dd-container">
-                    <label for="odpa-dd" class="block text-sm font-medium">ODPA:</label>
-                    <select id="odpa-dd" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                        <option value="None" selected>None</option>
-                        <option value="Long Term 3 Yrs">Long Term 3 Yrs</option>
-                        <option value="One Year">One Year</option>
+            <div class="flex items-center">
+                <input type="checkbox" id="is_ev" class="mr-2">
+                <label class="text-sm font-medium">Electric Vehicle</label>
+            </div>
+        </div>
+        <div class="mb-4">
+            <div class="flex flex-wrap gap-4">
+                <div><input type="checkbox" id="nil_dep" class="mr-1"><label class="text-sm">Nil Dep Plus</label></div>
+                <div><input type="checkbox" id="engine_protect" class="mr-1"><label class="text-sm">Engine Protect</label></div>
+                <div><input type="checkbox" id="invoice_protect" class="mr-1"><label class="text-sm">Invoice Protect</label></div>
+                <div><input type="checkbox" id="consumable_protect" class="mr-1"><label class="text-sm">Consumable Protect</label></div>
+                <div><input type="checkbox" id="rsa" class="mr-1"><label class="text-sm">RSA</label></div>
+                <div><input type="checkbox" id="driver" class="mr-1"><label class="text-sm">Driver</label></div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="odpa" class="mr-1"><label class="text-sm mr-2">ODPA</label>
+                    <select id="odpa_type" class="w-32 hidden">
+                        <option value="3 Yrs Long term">3 Yrs Long term</option>
+                        <option value="1 Yr">1 Yr</option>
                     </select>
                 </div>
             </div>
-            <!-- Buttons -->
-            <div class="col-span-2 flex justify-left space-x-4 mt-4">
-                <button type="button" onclick="calculatePremium()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Calculate Premium</button>
-                <button type="button" onclick="resetForm()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Reset</button>
-                <button type="button" onclick="generatePDF()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Generate PDF</button>
-            </div>
-        </form>
-        <!-- Output -->
-        <div class="mt-6">
-            <pre id="output" class="bg-gray-100 p-4 rounded-md text-sm h-96 overflow-auto"></pre>
         </div>
-        <!-- Rupee Symbol Test -->
-        <div class="rupee-test" id="rupee-test">\u20B9</div>
+        <div class="flex gap-4 mb-4">
+            <button id="calculate" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Calculate Premium</button>
+            <button id="reset" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Reset</button>
+            <button id="exit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Exit</button>
+        </div>
+        <textarea id="output" readonly></textarea>
     </div>
-
+    <div id="error_popup" class="error-popup">
+        <p id="error_message" class="text-red-700"></p>
+        <button id="close_error" class="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">OK</button>
+    </div>
     <script>
-        // Constants
-        const AGE_OPTIONS = ["0-1", "1-2", "2-3", "3-4", "4-5", "5-6", "6-7", "7-8", "8-9", "9-10", "above 10"];
-        const NCB_OPTIONS = [0, 20, 25, 35, 45, 50];
+        function getElement(id) { return document.getElementById(id); }
+        function showError(message) {
+            getElement('error_message').textContent = message;
+            getElement('error_popup').style.display = 'block';
+        }
+        function formatRow(label, value) {
+            let formattedValue = typeof value === 'number' ? `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : String(value);
+            let labelLength = 35;
+            let valueLength = Math.max(formattedValue.length, label.length) + 5;
+            let formattedLabel = label.padEnd(labelLength, ' ');
+            return `${formattedLabel}${formattedValue.padEnd(valueLength, ' ')}`;
+        }
 
-        const AGE_MAPPING = {
-            "0-1": "upto5", "1-2": "upto5", "2-3": "upto5", "3-4": "upto5", "4-5": "upto5",
-            "5-6": "5to10", "6-7": "5to10", "7-8": "5to10", "8-9": "5to10", "9-10": "5to10",
-            "above 10": "above10"
-        };
+        function getOdRate(ageBand, capacity, zone) {
+            const ageMapping = {
+                "0-1": "upto5", "1-2": "upto5", "2-3": "upto5", "3-4": "upto5", "4-5": "upto5",
+                "5-6": "5to10", "6-7": "5to10", "7-8": "5to10", "8-9": "5to10", "9-10": "5to10",
+                "above 10": "above10"
+            };
+            const capacityCategory = {
+                "upto 1000": "upto1000", "1000-1500": "1000to1500", "Above 1500": "above1500",
+                "Upto 30 kW": "upto1000", "30-65 kW": "1000to1500", "Above 65 kW": "above1500"
+            };
+            const odRates = {
+                "upto5": {
+                    "upto1000": { "A": 3.127, "B": 3.039 },
+                    "1000to1500": { "A": 3.283, "B": 3.191 },
+                    "above1500": { "A": 3.440, "B": 3.343 }
+                },
+                "5to10": {
+                    "upto1000": { "A": 3.283, "B": 3.191 },
+                    "1000to1500": { "A": 3.447, "B": 3.351 },
+                    "above1500": { "A": 3.612, "B": 3.510 }
+                },
+                "above10": {
+                    "upto1000": { "A": 3.362, "B": 3.267 },
+                    "1000to1500": { "A": 3.529, "B": 3.430 },
+                    "above1500": { "A": 3.698, "B": 3.594 }
+                }
+            };
+            let ageKey = ageMapping[ageBand];
+            let capacityKey = capacityCategory[capacity];
+            return odRates[ageKey][capacityKey][zone];
+        }
 
-        const CAPACITY_CATEGORY = {
-            "upto 1000": "upto1000",
-            "1000-1500": "1000to1500",
-            "Above 1500": "above1500",
-            "Upto 30 kW": "upto1000",
-            "30-65 kW": "1000to1500",
-            "Above 65 kW": "above1500"
-        };
-
-        const OD_RATES = {
-            "upto5": {
-                "upto1000": {"A": 3.127, "B": 3.039},
-                "1000to1500": {"A": 3.283, "B": 3.191},
-                "above1500": {"A": 3.440, "B": 3.343}
-            },
-            "5to10": {
-                "upto1000": {"A": 3.283, "B": 3.191},
-                "1000to1500": {"A": 3.447, "B": 3.351},
-                "above1500": {"A": 3.612, "B": 3.510}
-            },
-            "above10": {
-                "upto1000": {"A": 3.362, "B": 3.267},
-                "1000to1500": {"A": 3.529, "B": 3.430},
-                "above1500": {"A": 3.698, "B": 3.594}
-            }
-        };
-
-        const ADDITIONAL_PREMIUM_RATES = {
-            "0-1": { nil_dep: 0.45, engine_protect: 0.09, invoice_protect: 0.08, consumable_protect: 0.10 },
-            "1-2": { nil_dep: 0.6, engine_protect: 0.11, invoice_protect: 0.3, consumable_protect: 0.12 },
-            "2-3": { nil_dep: 0.75, engine_protect: 0.14, invoice_protect: 0.42, consumable_protect: 0.14 },
-            "3-4": { nil_dep: 0.98, engine_protect: 0.16, invoice_protect: 0.59, consumable_protect: 0.17 },
-            "4-5": { nil_dep: 1.25, engine_protect: 0.2, invoice_protect: 0.67, consumable_protect: 0.20 }
-        };
-
-        // Test Rupee symbol rendering
-        const rupeeTest = document.getElementById('rupee-test').innerText;
-        console.log('Rupee symbol test:', rupeeTest === '\u20B9', 'Actual:', rupeeTest);
-
-        // Update Capacity options based on EV checkbox
-        function updateCapacityOptions() {
-            const isEv = document.getElementById('is_ev').checked;
-            const capacitySelect = document.getElementById('capacity');
-            const capacityLabel = document.getElementById('capacity_label');
-            const engineProtect = document.getElementById('engine_protect');
-
+        function calculateTpPremium(capacity, policyType, isEv) {
             if (isEv) {
-                capacityLabel.innerText = 'Motor Power (kW):';
-                capacitySelect.innerHTML = `
-                    <option value="Upto 30 kW">Upto 30 kW</option>
-                    <option value="30-65 kW" selected>30-65 kW</option>
-                    <option value="Above 65 kW">Above 65 kW</option>
-                `;
-                engineProtect.disabled = true;
-                engineProtect.checked = false;
-            } else {
-                capacityLabel.innerText = 'Engine Capacity (CC):';
-                capacitySelect.innerHTML = `
-                    <option value="upto 1000">upto 1000</option>
-                    <option value="1000-1500" selected>1000-1500</option>
-                    <option value="Above 1500">Above 1500</option>
-                `;
-                engineProtect.disabled = false;
-            }
-        }
-
-        // Update Vehicle Age options based on Policy Type
-        function updateVehicleAgeOptions() {
-            const policyType = document.getElementById('policy_type').value;
-            const vehicleAgeSelect = document.getElementById('vehicle_age');
-            let validAges, defaultAge;
-
-            if (policyType === 'SAOD Policy') {
-                validAges = ['0-1', '1-2', '2-3'];
-                defaultAge = vehicleAgeSelect.value in validAges ? vehicleAgeSelect.value : '0-1';
-            } else if (policyType === 'Bundle policy (New Vehicle)') {
-                validAges = ['0-1'];
-                defaultAge = '0-1';
-            } else {
-                validAges = AGE_OPTIONS;
-                defaultAge = vehicleAgeSelect.value in validAges ? vehicleAgeSelect.value : '2-3';
-            }
-
-            vehicleAgeSelect.innerHTML = validAges.map(age => `<option value="${age}" ${age === defaultAge ? 'selected' : ''}>${age}</option>`).join('');
-        }
-
-        // Update ODPA input type based on Policy Type
-        function updateODPAOptions() {
-            const policyType = document.getElementById('policy_type').value;
-            const odpaCheckboxContainer = document.getElementById('odpa-checkbox-container');
-            const odpaDdContainer = document.getElementById('odpa-dd-container');
-
-            if (policyType === 'Bundle policy (New Vehicle)') {
-                odpaCheckboxContainer.style.display = 'none';
-                odpaDdContainer.style.display = 'block';
-                document.getElementById('odpa-checkbox').checked = false;
-            } else {
-                odpaCheckboxContainer.style.display = 'block';
-                odpaDdContainer.style.display = 'none';
-                document.getElementById('odpa-dd').value = 'None';
-            }
-        }
-
-        // Initialize form
-        updateCapacityOptions();
-        updateVehicleAgeOptions();
-        updateODPAOptions();
-
-        function get_od_rate(age_band, capacity, zone) {
-            const age_key = AGE_MAPPING[age_band];
-            const capacity_key = CAPACITY_CATEGORY[capacity];
-            return OD_RATES[age_key][capacity_key][zone];
-        }
-
-        function calculate_tp_premium(capacity, policy_type, is_ev) {
-            let tp_rates;
-            if (is_ev) {
-                if (policy_type === "Bundle policy (New Vehicle)") {
-                    tp_rates = {
-                        "Upto 30 kW": 5543,
-                        "30-65 kW": 9044,
-                        "Above 65 kW": 20907
-                    };
+                if (policyType === "Bundle policy (New Vehicle)") {
+                    return { "Upto 30 kW": 5543, "30-65 kW": 9044, "Above 65 kW": 20907 }[capacity] || 0;
                 } else {
-                    tp_rates = {
-                        "Upto 30 kW": 1780,
-                        "30-65 kW": 2904,
-                        "Above 65 kW": 6712
-                    };
+                    return { "Upto 30 kW": 1780, "30-65 kW": 2904, "Above 65 kW": 6712 }[capacity] || 0;
                 }
             } else {
-                if (policy_type === "Bundle policy (New Vehicle)") {
-                    tp_rates = {
-                        "upto 1000": 6521,
-                        "1000-1500": 10640,
-                        "Above 1500": 24596
-                    };
+                if (policyType === "Bundle policy (New Vehicle)") {
+                    return { "upto 1000": 6521, "1000-1500": 10640, "Above 1500": 24596 }[capacity] || 0;
                 } else {
-                    tp_rates = {
-                        "upto 1000": 2094,
-                        "1000-1500": 3416,
-                        "Above 1500": 7897
-                    };
+                    return { "upto 1000": 2094, "1000-1500": 3416, "Above 1500": 7897 }[capacity] || 0;
                 }
             }
-            return tp_rates[capacity] || 0;
         }
 
-        function calculate_additional_premiums(age_band, idv, nil_dep, engine_protect, invoice_protect, consumable_protect) {
-            const additional_premiums = { nil_dep: 0, engine_protect: 0, invoice_protect: 0, consumable_protect: 0 };
+        function calculateAdditionalPremiums(ageBand, idv, nilDep, engineProtect, invoiceProtect, consumableProtect) {
+            let additionalPremiums = { nil_dep: 0, engine_protect: 0, invoice_protect: 0, consumable_protect: 0 };
             let warning = null;
-
-            if (nil_dep && ['5-6', '6-7', '7-8', '8-9', '9-10', 'above 10'].includes(age_band)) {
-                warning = "Nil Dep is available only on Renewal of NIC Policy for 5+ yrs vehicle.";
-            } else if (age_band in ADDITIONAL_PREMIUM_RATES) {
-                const rates = ADDITIONAL_PREMIUM_RATES[age_band];
-                if (nil_dep) additional_premiums.nil_dep = (idv * rates.nil_dep) / 100;
-                if (engine_protect) additional_premiums.engine_protect = (idv * rates.engine_protect) / 100;
-                if (invoice_protect) additional_premiums.invoice_protect = (idv * rates.invoice_protect) / 100;
-                if (consumable_protect) additional_premiums.consumable_protect = (idv * rates.consumable_protect) / 100;
-            } else if (nil_dep || engine_protect || invoice_protect || consumable_protect) {
-                warning = `Warning: Additional premiums not available for vehicle age '${age_band}'.`;
+            const ageMapping = {
+                "0-1": [0.45, 0.09, 0.08, 0.10],
+                "1-2": [0.6, 0.11, 0.3, 0.12],
+                "2-3": [0.75, 0.14, 0.42, 0.14],
+                "3-4": [0.98, 0.16, 0.59, 0.17],
+                "4-5": [1.25, 0.2, 0.67, 0.20],
+                "5-6": [1.75, 0, 0, 0],
+                "6-7": [1.85, 0, 0, 0],
+                "7-8": [1.95, 0, 0, 0],
+                "8-9": [2.24, 0, 0, 0],
+                "9-10": [2.25, 0, 0, 0]
+            };
+            if (ageMapping[ageBand]) {
+                let [nilDepRate, engineProtectRate, invoiceProtectRate, consumableProtectRate] = ageMapping[ageBand];
+                if (nilDep) additionalPremiums.nil_dep = (idv * nilDepRate) / 100;
+                if (engineProtect) additionalPremiums.engine_protect = (idv * engineProtectRate) / 100;
+                if (invoiceProtect) additionalPremiums.invoice_protect = (idv * invoiceProtectRate) / 100;
+                if (consumableProtect) additionalPremiums.consumable_protect = (idv * consumableProtectRate) / 100;
+            } else if (nilDep || engineProtect || invoiceProtect || consumableProtect) {
+                warning = `Warning: Additional premiums not available for vehicle age '${ageBand}'.`;
             }
-
-            return [additional_premiums, warning];
+            return [additionalPremiums, warning];
         }
 
-        function formatRow(label, value, is_right_col = false) {
-            let formatted_value;
-            if (typeof value === 'number' && !isNaN(value)) {
-                formatted_value = `Rs.${value.toFixed(2)}`;
-                // Alternative: formatted_value = `\u20B9${value.toFixed(2)}`;
+        getElement('is_ev').addEventListener('change', function() {
+            let isEv = this.checked;
+            getElement('capacity_label').textContent = isEv ? 'Motor Power (kW):' : 'Engine Capacity (CC):';
+            let capacity = getElement('capacity');
+            capacity.innerHTML = isEv
+                ? `<option value="Upto 30 kW">Upto 30 kW</option><option value="30-65 kW" selected>30-65 kW</option><option value="Above 65 kW">Above 65 kW</option>`
+                : `<option value="upto 1000">upto 1000</option><option value="1000-1500" selected>1000-1500</option><option value="Above 1500">Above 1500</option>`;
+            getElement('engine_protect').disabled = isEv;
+            if (isEv) getElement('engine_protect').checked = false;
+        });
+
+        getElement('policy_type').addEventListener('change', function() {
+            let policyType = this.value;
+            let odpa = getElement('odpa');
+            let odpaType = getElement('odpa_type');
+            if (policyType === 'Bundle policy (New Vehicle)') {
+                odpaType.classList.remove('hidden');
+                odpaType.disabled = !odpa.checked;
             } else {
-                formatted_value = value.toString();
+                odpaType.classList.add('hidden');
+                odpaType.disabled = true;
             }
-            const label_length = 35;
-            const formatted_label = label.padEnd(label_length, ' ');
-            return `${formatted_label} ${formatted_value}`;
-        }
+            // Update vehicle age options
+            let vehicleAgeSelect = getElement('vehicle_age');
+            let currentVehicleAge = vehicleAgeSelect.value;
+            let validAges;
+            if (policyType === 'SAOD Policy') {
+                validAges = ["0-1", "1-2", "2-3"];
+            } else if (policyType === 'Bundle policy (New Vehicle)') {
+                validAges = ["0-1"];
+            } else {
+                validAges = ["0-1", "1-2", "2-3", "3-4", "4-5", "5-6", "6-7", "7-8", "8-9", "9-10", "above 10"];
+            }
+            vehicleAgeSelect.innerHTML = validAges.map(age => `<option value="${age}" ${age === (validAges.includes(currentVehicleAge) ? currentVehicleAge : validAges[0]) ? 'selected' : ''}>${age}</option>`).join('');
+        });
 
-        function calculatePremium() {
-            console.log('Starting calculatePremium');
+        getElement('odpa').addEventListener('change', function() {
+            let odpaType = getElement('odpa_type');
+            let policyType = getElement('policy_type').value;
+            if (policyType === 'Bundle policy (New Vehicle)') {
+                odpaType.disabled = !this.checked;
+            }
+        });
+
+        getElement('calculate').addEventListener('click', function() {
             try {
-                // Get inputs
-                const policy_type = document.getElementById('policy_type').value;
-                const capacity = document.getElementById('capacity').value;
-                const is_ev = document.getElementById('is_ev').checked;
-                let vehicle_age = document.getElementById('vehicle_age').value;
-                const zone = document.getElementById('zone').value;
-                const idv = parseFloat(document.getElementById('idv').value);
-                const ncb = parseFloat(document.getElementById('ncb').value);
-                const discount = parseFloat(document.getElementById('discount').value);
-                const nil_dep = document.getElementById('nil_dep').checked;
-                const engine_protect = document.getElementById('engine_protect').checked && !is_ev;
-                const invoice_protect = document.getElementById('invoice_protect').checked;
-                const consumable_protect = document.getElementById('consumable_protect').checked;
-                const rsa = document.getElementById('rsa').checked;
-                const driver = document.getElementById('driver').checked;
-                const odpa_dd = document.getElementById('odpa-dd').value;
-                const odpa_checkbox = document.getElementById('odpa-checkbox').checked;
-
-                console.log('Inputs:', { policy_type, capacity, is_ev, vehicle_age, zone, idv, ncb, discount, nil_dep, engine_protect, invoice_protect, consumable_protect, rsa, driver, odpa_dd, odpa_checkbox });
+                let capacity = getElement('capacity').value;
+                let policyType = getElement('policy_type').value;
+                let isEv = getElement('is_ev').checked;
+                let currentVehicleAge = getElement('vehicle_age').value;
 
                 // Validate capacity
-                const valid_capacities = is_ev ? ["Upto 30 kW", "30-65 kW", "Above 65 kW"] : ["upto 1000", "1000-1500", "Above 1500"];
-                if (!valid_capacities.includes(capacity)) {
-                    throw new Error(`Invalid capacity '${capacity}' for ${is_ev ? 'Electric' : 'Conventional'} vehicle.`);
+                let validCapacities = isEv ? ["Upto 30 kW", "30-65 kW", "Above 65 kW"] : ["upto 1000", "1000-1500", "Above 1500"];
+                if (!validCapacities.includes(capacity)) {
+                    throw new Error(`Invalid capacity '${capacity}' for ${isEv ? 'Electric' : 'Conventional'} vehicle.`);
                 }
 
-                // Initialize variables
-                let basic_tp_premium = 0, tp_premium = 0, basic_od_premium = 0, ncb_discount = 0;
-                let od_after_ncb = 0, od_discount = 0, od_after_discount = 0, net_od_premium = 0;
-                let rsa_premium = 0, driver_premium = 0, odpa_premium = 0, od_rate = 0;
-                let additional_premiums = { nil_dep: 0, engine_protect: 0, invoice_protect: 0, consumable_protect: 0 };
-                let warning = null, first_year_payout = 0, next_four_years_payout = 0;
-
-                if (policy_type === "TP policy") {
-                    basic_tp_premium = calculate_tp_premium(capacity, policy_type, is_ev);
-                    if (basic_tp_premium === 0) throw new Error(`No TP premium defined for capacity '${capacity}'.`);
-                    tp_premium = basic_tp_premium;
-                    idv = 0.0;
-                    vehicle_age = "N/A";
-                    zone = "N/A";
-                    ncb = 0.0;
-                    discount = 0.0;
-                    basic_od_premium = 0.0;
-                    ncb_discount = 0.0;
-                    od_after_ncb = 0.0;
-                    od_discount = 0.0;
-                    od_after_discount = 0.0;
-                    net_od_premium = 0.0;
-                    rsa_premium = 0;
+                let idv, vehicleAge, zone, ncb, discount, basicOdPremium, ncbDiscount, odAfterNcb, odDiscount, odAfterDiscount, netOdPremium, basicTpPremium, tpPremium, additionalPremiums, rsaPremium, warning, odRate;
+                if (policyType === 'TP policy') {
+                    basicTpPremium = calculateTpPremium(capacity, policyType, isEv);
+                    if (basicTpPremium === 0) throw new Error(`No TP premium defined for capacity '${capacity}'.`);
+                    tpPremium = basicTpPremium;
+                    idv = 0;
+                    vehicleAge = 'N/A';
+                    zone = 'N/A';
+                    ncb = 0;
+                    discount = 0;
+                    basicOdPremium = 0;
+                    ncbDiscount = 0;
+                    odAfterNcb = 0;
+                    odDiscount = 0;
+                    odAfterDiscount = 0;
+                    netOdPremium = 0;
+                    additionalPremiums = { nil_dep: 0, engine_protect: 0, invoice_protect: 0, consumable_protect: 0 };
+                    rsaPremium = 0;
+                    warning = null;
+                    odRate = 0;
                 } else {
-                    if (isNaN(idv) || idv <= 0) throw new Error("IDV must be a positive number.");
-                    if (isNaN(discount) || discount < 0 || discount > 100) throw new Error("Discount must be between 0 and 100%.");
+                    idv = parseFloat(getElement('idv').value);
+                    discount = parseFloat(getElement('discount').value);
+                    if (isNaN(idv) || idv <= 0) throw new Error('IDV must be a positive number.');
+                    if (isNaN(discount) || discount < 0 || discount > 100) throw new Error('Discount must be between 0 and 100%.');
 
-                    if (policy_type === "SAOD Policy") {
-                        basic_tp_premium = 0;
-                        tp_premium = 0;
+                    vehicleAge = getElement('vehicle_age').value;
+                    zone = getElement('zone').value;
+                    ncb = parseFloat(getElement('ncb').value);
+
+                    if (policyType === 'SAOD Policy') {
+                        basicTpPremium = 0;
+                        tpPremium = 0;
                     } else {
-                        basic_tp_premium = calculate_tp_premium(capacity, policy_type, is_ev);
-                        if (basic_tp_premium === 0) throw new Error(`No TP premium defined for capacity '${capacity}'.`);
-                        tp_premium = basic_tp_premium;
+                        basicTpPremium = calculateTpPremium(capacity, policyType, isEv);
+                        if (basicTpPremium === 0) throw new Error(`No TP premium defined for capacity '${capacity}'.`);
+                        tpPremium = basicTpPremium;
                     }
 
-                    od_rate = get_od_rate(vehicle_age, capacity, zone);
-                    basic_od_premium = (idv * od_rate) / 100;
+                    odRate = getOdRate(vehicleAge, capacity, zone);
+                    basicOdPremium = (idv * odRate) / 100;
+                    ncbDiscount = (basicOdPremium * ncb) / 100;
+                    odAfterNcb = basicOdPremium - ncbDiscount;
+                    odDiscount = (odAfterNcb * discount) / 100;
+                    odAfterDiscount = odAfterNcb - odDiscount;
 
-                    ncb_discount = (basic_od_premium * ncb) / 100;
-                    od_after_ncb = basic_od_premium - ncb_discount;
+                    let nilDep = getElement('nil_dep').checked;
+                    let engineProtect = !isEv && getElement('engine_protect').checked;
+                    let invoiceProtect = getElement('invoice_protect').checked;
+                    let consumableProtect = getElement('consumable_protect').checked;
+                    [additionalPremiums, warning] = calculateAdditionalPremiums(vehicleAge, idv, nilDep, engineProtect, invoiceProtect, consumableProtect);
+                    rsaPremium = getElement('rsa').checked ? 15 : 0;
 
-                    od_discount = (od_after_ncb * discount) / 100;
-                    od_after_discount = od_after_ncb - od_discount;
-
-                    [additional_premiums, warning] = calculate_additional_premiums(vehicle_age, idv, nil_dep, engine_protect, invoice_protect, consumable_protect);
-                    rsa_premium = rsa ? 15 : 0;
-
-                    net_od_premium = od_after_discount + Object.values(additional_premiums).reduce((a, b) => a + b, 0) + rsa_premium;
+                    netOdPremium = odAfterDiscount + Object.values(additionalPremiums).reduce((a, b) => a + b, 0) + rsaPremium;
                 }
 
-                // TP add-ons
-                if (policy_type === "SAOD Policy") {
-                    driver_premium = 0;
-                    odpa_premium = 0;
-                } else if (policy_type === "Bundle policy (New Vehicle)") {
-                    driver_premium = driver ? 150 : 0;
-                    odpa_premium = odpa_dd === "Long Term 3 Yrs" ? 850 : odpa_dd === "One Year" ? 275 : 0;
+                let driverPremium, odpaPremium;
+                if (policyType === 'SAOD Policy') {
+                    driverPremium = 0;
+                    odpaPremium = 0;
+                } else if (policyType === 'Bundle policy (New Vehicle)') {
+                    driverPremium = getElement('driver').checked ? 150 : 0;
+                    odpaPremium = getElement('odpa').checked ? (getElement('odpa_type').value === '3 Yrs Long term' ? 850 : 275) : 0;
                 } else {
-                    driver_premium = driver ? 50 : 0;
-                    odpa_premium = odpa_checkbox ? 275 : 0;
+                    driverPremium = getElement('driver').checked ? 50 : 0;
+                    odpaPremium = getElement('odpa').checked ? 275 : 0;
                 }
-                tp_premium += driver_premium + odpa_premium;
+                tpPremium += driverPremium + odpaPremium;
 
-                const gst = ((net_od_premium + tp_premium) * 18) / 100;
-                const net_premium = net_od_premium + tp_premium + gst;
+                let gst = (netOdPremium + tpPremium) * 0.18;
+                let netPremium = Math.round(netOdPremium + tpPremium + gst);
 
-                // Total Payout
-                let total_payout = 0.0;
-                if (policy_type === "SAOD Policy") {
-                    total_payout = net_od_premium * 0.25;
-                } else if (policy_type === "Bundle policy (New Vehicle)") {
-                    first_year_payout = (net_od_premium * 0.275) + (basic_tp_premium / 5 * 0.20);
-                    next_four_years_payout = (basic_tp_premium / 5 * 0.15) * 4;
-                    total_payout = first_year_payout + next_four_years_payout;
-                } else if (policy_type === "Package Policy") {
-                    if (vehicle_age === "above 10") {
-                        total_payout = (net_od_premium * 0.20) + (tp_premium * 0.125);
+                let totalPayout = 0;
+                let firstYearPayout = 0;
+                let nextFourYearsPayout = 0;
+                if (policyType === 'SAOD Policy') {
+                    totalPayout = netOdPremium * 0.25;
+                } else if (policyType === 'Bundle policy (New Vehicle)') {
+                    firstYearPayout = (netOdPremium * 0.275) + (basicTpPremium / 5 * 0.20);
+                    nextFourYearsPayout = (basicTpPremium / 5 * 0.15) * 4;
+                    totalPayout = firstYearPayout + nextFourYearsPayout;
+                } else if (policyType === 'Package Policy') {
+                    if (vehicleAge === 'above 10') {
+                        totalPayout = (netOdPremium * 0.2) + (tpPremium * 0.125);
                     } else {
-                        total_payout = (net_od_premium * 0.225) + (tp_premium * 0.15);
+                        totalPayout = (netOdPremium * 0.225) + (tpPremium * 0.15);
                     }
-                } else if (policy_type === "TP policy") {
-                    total_payout = tp_premium * 0.20;
+                } else if (policyType === 'TP policy') {
+                    totalPayout = tpPremium * 0.20;
                 }
 
-                const tp_label = policy_type === "Bundle policy (New Vehicle)" ? "Long Term TP premium (3 yrs)" : "TP Premium";
-                const basic_tp_label = policy_type === "Bundle policy (New Vehicle)" ? "Basic Long Term TP Premium (3 yrs)" : "Basic TP Premium";
-                const capacity_label = is_ev ? "Motor Power" : "Engine Capacity";
-                const odpa_label = policy_type === "Bundle policy (New Vehicle)" ? `ODPA (${odpa_dd})` : "ODPA";
+                let tpLabel = policyType === 'Bundle policy (New Vehicle)' ? 'Long Term TP premium (3 yrs)' : 'TP Premium';
+                let basicTpLabel = policyType === 'Bundle policy (New Vehicle)' ? 'Basic Long Term TP Premium (3 yrs)' : 'Basic TP Premium';
+                let capacityLabel = isEv ? 'Motor Power' : 'Engine Capacity';
 
-                const output = [
-                    "---------- PREMIUM DETAILS ----------",
-                    formatRow("Policy Type", policy_type),
-                    formatRow("IDV", idv),
-                    formatRow("Age Band", vehicle_age),
-                    formatRow(capacity_label, capacity),
-                    formatRow("Zone", zone),
-                    formatRow("OD Premium Rate", od_rate),
-                    formatRow("Basic OD Premium", basic_od_premium),
-                    formatRow("NCB Discount", ncb_discount),
-                    formatRow("OD After NCB", od_after_ncb),
-                    formatRow("OD Discount", od_discount),
-                    formatRow("OD After Discount", od_after_discount),
-                    formatRow("Net OD Premium", net_od_premium),
-                    formatRow(basic_tp_label, basic_tp_premium),
-                    formatRow(tp_label, tp_premium),
-                    formatRow("GST", gst),
-                    formatRow("Final Payable", net_premium),
-                    "\n---------- ADDITIONAL PREMIUMS ----------",
-                    formatRow("Nil Dep Plus", additional_premiums.nil_dep),
-                    formatRow("Engine Protect", additional_premiums.engine_protect),
-                    formatRow("Invoice Protect", additional_premiums.invoice_protect),
-                    formatRow("Consumable Protect", additional_premiums.consumable_protect),
-                    formatRow("RSA", rsa_premium),
-                    "\n---------- TP ADD-ONS ----------",
-                    formatRow("Driver", driver_premium),
-                    formatRow(odpa_label, odpa_premium),
-                    "\n---------- PAYOUT DETAILS ----------"
+                let output = [
+                    '---------- PREMIUM DETAILS ----------',
+                    formatRow('Policy Type', policyType),
+                    formatRow('IDV', idv),
+                    formatRow('Age Band', vehicleAge),
+                    formatRow(capacityLabel, capacity),
+                    formatRow('Zone', zone),
+                    formatRow('OD Premium Rate', odRate),
+                    formatRow('Basic OD Premium', basicOdPremium),
+                    formatRow('NCB Discount', ncbDiscount),
+                    formatRow('OD After NCB', odAfterNcb),
+                    formatRow('OD Discount', odDiscount),
+                    formatRow('OD After Discount', odAfterDiscount),
+                    formatRow('Net OD Premium', netOdPremium),
+                    formatRow(basicTpLabel, basicTpPremium),
+                    formatRow(tpLabel, tpPremium),
+                    formatRow('GST', gst),
+                    formatRow('Final Payable', netPremium),
+                    '\n---------- ADDITIONAL PREMIUMS ----------',
+                    formatRow('Nil Dep Plus', additionalPremiums.nil_dep),
+                    formatRow('Engine Protect', additionalPremiums.engine_protect),
+                    formatRow('Invoice Protect', additionalPremiums.invoice_protect),
+                    formatRow('Consumable Protect', additionalPremiums.consumable_protect),
+                    formatRow('RSA', rsaPremium),
+                    '\n---------- TP ADD-ONS ----------',
+                    formatRow('Driver', driverPremium),
+                    formatRow('ODPA', odpaPremium),
+                    '\n---------- PAYOUT DETAILS ----------',
                 ];
-
-                if (policy_type === "Bundle policy (New Vehicle)") {
+                if (policyType === 'Bundle policy (New Vehicle)') {
                     output.push(
-                        formatRow("First Year Payout", first_year_payout),
-                        formatRow("Next 4 Years Payout (15% TP)", next_four_years_payout),
-                        formatRow("Total Payout (Comm.+Incen)", total_payout)
+                        formatRow('First Year Payout', firstYearPayout),
+                        formatRow('Next 4 Years Payout (15% TP)', nextFourYearsPayout),
+                        formatRow('Total Payout (Comm.+Incen)', totalPayout)
                     );
                 } else {
-                    output.push(formatRow("Total Payout (Comm.+Incen)", total_payout));
+                    output.push(formatRow('Total Payout (Comm.+Incen)', totalPayout));
                 }
+                if (warning) output.push('\n' + warning);
 
-                if (warning) {
-                    alert(warning);
-                    output.push("\n" + warning);
-                }
-
-                const outputText = output.join('\n');
-                console.log('Output text includes Rs.:', outputText.includes('Rs.'));
-                document.getElementById('output').innerText = outputText;
-                console.log('Output set successfully');
+                getElement('output').value = output.join('\n');
             } catch (e) {
-                console.error('Error in calculatePremium:', e);
-                alert(`Error: ${e.message}`);
-                document.getElementById('output').innerText = `Error: ${e.message}`;
+                showError(e.message || 'An unexpected error occurred.');
             }
-        }
+        });
 
-        function resetForm() {
-            document.getElementById('calculator-form').reset();
-            document.getElementById('policy_type').value = 'Package Policy';
-            document.getElementById('zone').value = 'B';
-            document.getElementById('idv').value = '600000';
-            document.getElementById('capacity').value = '1000-1500';
-            document.getElementById('capacity_label').innerText = 'Engine Capacity (CC):';
-            document.getElementById('vehicle_age').value = '2-3';
-            document.getElementById('ncb').value = '0';
-            document.getElementById('discount').value = '0';
-            document.getElementById('is_ev').checked = false;
-            document.getElementById('nil_dep').checked = false;
-            document.getElementById('engine_protect').checked = false;
-            document.getElementById('engine_protect').disabled = false;
-            document.getElementById('invoice_protect').checked = false;
-            document.getElementById('consumable_protect').checked = false;
-            document.getElementById('rsa').checked = false;
-            document.getElementById('driver').checked = false;
-            document.getElementById('odpa-checkbox').checked = false;
-            document.getElementById('odpa-dd').value = 'None';
-            document.getElementById('output').innerText = '';
-            updateCapacityOptions();
-            updateVehicleAgeOptions();
-            updateODPAOptions();
-        }
+        getElement('reset').addEventListener('click', function() {
+            getElement('policy_type').value = 'Package Policy';
+            getElement('vehicle_age').innerHTML = '<option value="0-1">0-1</option><option value="1-2">1-2</option><option value="2-3" selected>2-3</option><option value="3-4">3-4</option><option value="4-5">4-5</option><option value="5-6">5-6</option><option value="6-7">6-7</option><option value="7-8">7-8</option><option value="8-9">8-9</option><option value="9-10">9-10</option><option value="above 10">above 10</option>';
+            getElement('idv').value = '600000';
+            getElement('capacity').innerHTML = '<option value="upto 1000">upto 1000</option><option value="1000-1500" selected>1000-1500</option><option value="Above 1500">Above 1500</option>';
+            getElement('capacity_label').textContent = 'Engine Capacity (CC):';
+            getElement('zone').value = 'B';
+            getElement('ncb').value = '0';
+            getElement('discount').value = '0';
+            getElement('is_ev').checked = false;
+            getElement('nil_dep').checked = false;
+            getElement('engine_protect').checked = false;
+            getElement('engine_protect').disabled = false;
+            getElement('invoice_protect').checked = false;
+            getElement('consumable_protect').checked = false;
+            getElement('rsa').checked = false;
+            getElement('driver').checked = false;
+            getElement('odpa').checked = false;
+            getElement('odpa_type').classList.add('hidden');
+            getElement('odpa_type').disabled = true;
+            getElement('output').value = '';
+        });
 
-        function generatePDF() {
-            calculatePremium();
-            let output_text = document.getElementById('output').innerText;
-            if (!output_text || output_text.startsWith('Error:')) {
-                alert('Please calculate the premium successfully first!');
-                return;
-            }
+        getElement('exit').addEventListener('click', function() {
+            window.close();
+        });
 
-            const { jsPDF } = window.jspdf;
-            let doc = new jsPDF();
-            doc.setFontSize(12);
-            doc.setFont('times', 'normal');
-            // Fallback: output_text = output_text.replace(/\u20B9/g, 'Rs.');
-            let lines = output_text.split('\n');
-            let y_position = 10;
-            lines.forEach(line => {
-                doc.text(line, 10, y_position);
-                y_position += 10;
-                if (y_position > 280) {
-                    doc.addPage();
-                    y_position = 10;
-                }
-            });
-            doc.save('car_premium_calculation.pdf');
-            alert('PDF Generated!');
-        }
+        getElement('close_error').addEventListener('click', function() {
+            getElement('error_popup').style.display = 'none';
+        });
     </script>
 </body>
 </html>
